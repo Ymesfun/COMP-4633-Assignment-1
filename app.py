@@ -7,7 +7,8 @@ from dotenv import load_dotenv
 load_dotenv()
 
 app = Flask(__name__)
-
+DATETIME_FORMAT = "%Y-%m-%d %H:%M:%S"
+MAX_TEXT_LENGHT = 100
 
 def get_db():
     """This function opens a connection to the mysql database using environment variables."""
@@ -60,3 +61,47 @@ def create_event():
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=False)
+
+
+#returns a list of all events
+@app.get("/api/v1/events")
+def list_events():
+    query = """ SELECT e.event_id, e.title, e.location, e.start_datetime, e.capacity, 
+                    (SELECT COUNT(*) 
+                    FROM registractions r 
+                    WHERE r.event_id = e.event_id) AS registered_count
+                    FROM events e
+                ORDER BY e.start_datetime"""
+
+    conn = None
+    cursor = None
+    try:
+        conn = get_db()
+        #returns each row as a dict to use title instead of row
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute(query)
+        rows = cursor.fetchall()
+
+
+        # convert each rw into json accetable data
+        events = []
+        for row in rows:
+            events.append({
+                "event_id": row["event_id"],
+                "title": row["title"],
+                "location": row["location"],
+                "start_datetime": row["start_datetime"].strftime(DATETIME_FORMAT),
+                "capacity": row["capacity"],
+                "registered_count": row["registered_count"],
+                "spots_remaining": row["capacity"] - row["registered_count"],
+            })
+        return jsonify(events), 200
+    except mysql.connector.Error:
+        return jsonify({"error": "database error detected"}), 500
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
+
+
