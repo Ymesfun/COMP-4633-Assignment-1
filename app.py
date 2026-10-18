@@ -2,6 +2,7 @@ import os
 from flask import Flask, jsonify, request
 import mysql.connector
 from dotenv import load_dotenv
+from datetime import datetime
 
 #Fetches environment vars from .env file
 load_dotenv()
@@ -22,6 +23,7 @@ def get_db():
 
 @app.get("/api")
 def health():
+    """Basic health check api call."""
     return jsonify({"status": "ok", "message": "API is running"}), 200
 
 @app.post("/api/v1/events")
@@ -57,6 +59,92 @@ def create_event():
         if cursor:
             cursor.close()
         if conn:
+            conn.close()
+
+@app.patch("/api/v1/events/<int:event_id>")
+def update_event_details(event_id):
+    body = request.get_json(silent=True) or {}
+    if not body:
+        return jsonify({"error": "No Valid data provided in body to update"}), 400
+    new_capacity = body.get('capacity')
+    update_information = []
+    values = []
+
+    # Need to validate every field that exists, why we need to search through our json body and validate if inputs are invalid
+    if 'title' in body:
+        title = body['title']
+        if not title or not str(title).strip():
+            return jsonify({"error": "Title cannot be empty text"}), 400
+        update_information.append("title = %s")
+        values.append(str(title).strip())
+
+    if 'location' in body:
+        location = body['location']
+        if not location or not str(location).strip():
+            return jsonify({"error": "Location cannot be empty text"}), 400
+        update_information.append("location = %s")
+        values.append(str(location).strip())
+
+    if 'start_datetime' in body:
+        start_datetime_str = body['start_datetime']
+        try:
+            new_time = datetime.strptime(start_datetime_str, "%Y-%m-%d %H:%M:%S")
+            if new_time <= datetime.now():
+                return jsonify({"error": "New start time must be in the future"}), 400
+            
+            update_information.append("start_datetime = %s")
+            values.append(start_datetime_str)
+        except ValueError:
+            return jsonify({"error": "Invalid date format. Use YYYY-MM-DD HH:MM:SS"}), 400
+
+    new_capacity = None
+    if 'capacity' in body:
+        new_capacity = body['capacity']
+        if not isinstance(new_capacity, int) or new_capacity <= 0:
+            return jsonify({"error": "Valid positive capacity required"}), 400
+
+    if not update_information and new_capacity is None:
+         return jsonify({"error": "No valid fields provided to update"}), 400
+    
+    conn = None
+    cursor = None
+    try:
+        conn = get_db()
+        cursor = conn.cursor(dictionary=True)
+
+        # Need to validate if there is a valid capacity update (can't be zero, cant be lower than existing registrations)
+        if new_capacity is not None:
+            new_capacity = body['capacity']
+            if not isinstance(new_capacity, int) or new_capacity <= 0:
+                return jsonify({"error": "Valid positive capacity required"}), 400
+            
+            cursor.execute("SELECT COUNT(*) as reg_count FROM registrations WHERE event_id = %s", (event_id,))
+            result = cursor.fetchone()
+            current_registrations = result['reg_count'] if result else 0
+            
+            if new_capacity < current_registrations: # 409 - conflict with current state of target resource (Cant lower capacity below existing registrations) 
+                return jsonify({"error": "Capacity cannot be lower than existing registrations"}), 409
+            
+            update_information.append("capacity = %s")
+            values.append(new_capacity)
+
+        query = f"UPDATE events SET {', '.join(update_information)} WHERE event_id = %s"
+        values.append(event_id)
+
+        cursor.execute(query, tuple(values))
+        conn.commit()
+
+        if cursor.rowcount == 0: #Guard against modifying a null row
+             return jsonify({"error": "Event not found"}), 404
+
+        return jsonify({"message": "Event successfully updated"}), 200
+    
+    except mysql.connector.Error:
+        return jsonify({"error": "Database error occurred"}), 500
+    finally: #Close up remaining connections if they are open
+        if cursor:
+            cursor.close()
+        if conn: 
             conn.close()
 
 if __name__ == "__main__":
