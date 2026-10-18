@@ -15,20 +15,6 @@ CREATE TABLE IF NOT EXISTS participants (
   email VARCHAR(100) NOT NULL UNIQUE
 );
 
-CREATE TABLE IF NOT EXISTS registrations(
-  registration_id INT AUTO_INCREMENT PRIMARY KEY,
-  event_id INT NOT NULL,
-  location VARCHAR(100) NOT NULL,
-  start_datetime NOT NULL,
-  capacity INT NOT NULL CHECK (capacity > 0)
-);
-
-CREATE TABLE IF NOT EXISTS participants (
-  participant_id INT AUTO_INCREMENT PRIMARY KEY,
-  name VARCHAR(100) NOT NULL,
-  email VARCHAR(100) NOT NULL UNIQUE
-);
-
 CREATE TABLE IF NOT EXISTS registrations (
   registration_id INT AUTO_INCREMENT PRIMARY KEY,
   event_id INT NOT NULL,
