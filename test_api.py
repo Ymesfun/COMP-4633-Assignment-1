@@ -144,3 +144,53 @@ def test_list_events_database_error(mocked_database, client):
 
     assert response.status_code == 500
     assert response.get_json() == {"error": "database error detected"}
+
+@pytest.mark.parametrize("reg_count, rowcount, expected_status, expected_error", [
+    (5, 0, 409, "Cannot delete event with active registrations"), 
+    (0, 0, 404, "Event not found"),                               
+])
+def test_delete_event_logic_errors(mocked_database, client, reg_count, rowcount, expected_status, expected_error):
+    """Runs the parametrized tests to see if our error branches can be hit successfully."""
+    mock_get_db, mock_connection, mock_cursor = mocked_database
+    
+    # Configure the mock based on parameters
+    mock_cursor.fetchone.return_value = {'reg_count': reg_count}
+    mock_cursor.rowcount = rowcount
+    
+    response = client.delete("/api/v1/events/1")
+    data = response.get_json()
+    
+    assert response.status_code == expected_status
+    assert data["error"] == expected_error
+
+
+def test_delete_event_success(mocked_database, client):
+    """Test a successful event deletion."""
+    mock_get_db, mock_connection, mock_cursor = mocked_database
+    
+    # Setup for a successful deletion: 0 registrations, 1 row removed
+    mock_cursor.fetchone.return_value = {'reg_count': 0}
+    mock_cursor.rowcount = 1
+    
+    response = client.delete("/api/v1/events/1")
+    data = response.get_json()
+    
+    assert response.status_code == 200
+    assert data["message"] == "Event successfully deleted"
+    
+    # Verify the database commit was actually triggered
+    mock_connection.commit.assert_called_once()
+
+
+def test_delete_event_database_error(mocked_database, client):
+    """Test if a db connection error will appropriately return a 500 database error."""
+    mock_get_db, mock_connection, mock_cursor = mocked_database
+    
+    # Simulate the database throwing an error when execute is called
+    mock_cursor.execute.side_effect = mysql.connector.Error("Connection lost")
+    
+    response = client.delete("/api/v1/events/1")
+    data = response.get_json()
+    
+    assert response.status_code == 500
+    assert data["error"] == "Database error occurred"
