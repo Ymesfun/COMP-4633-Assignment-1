@@ -30,7 +30,7 @@ class ApiError(Exception):
         self.status = status
         self.message = message
 
-  def utc_now():
+def utc_now():
     return datetime.now(timezone.utc).replace(tzinfo=None, microsecond=0)
 
 
