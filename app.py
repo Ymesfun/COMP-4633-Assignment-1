@@ -193,3 +193,33 @@ def list_events():
             conn.close()
 
 
+@app.delete("/api/v1/events/<int:event_id>")
+def delete_event(event_id):
+    conn = None
+    cursor = None
+    try:
+        conn = get_db()
+        cursor = conn.cursor(dictionary=True)
+
+        # Check if registrations exist
+        cursor.execute("SELECT COUNT(*) as reg_count FROM registrations WHERE event_id = %s", (event_id,))
+        result = cursor.fetchone()
+        
+        if result and result['reg_count'] > 0: #Error state - active registrations
+            return jsonify({"error": "Cannot delete event with active registrations"}), 409
+
+        cursor.execute("DELETE FROM events WHERE event_id = %s", (event_id,))
+        conn.commit()
+
+        if cursor.rowcount == 0: #Check if we havent removed any rows AKA the event doesn't exist
+            return jsonify({"error": "Event not found"}), 404
+
+        return jsonify({"message": "Event successfully deleted"}), 200
+
+    except mysql.connector.Error:
+        return jsonify({"error": "Database error occurred"}), 500
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
