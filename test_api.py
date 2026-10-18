@@ -2,6 +2,7 @@ import pytest
 from unittest.mock import patch, MagicMock
 from app import app
 from datetime import datetime, timedelta
+import mysql.connector
 
 @pytest.fixture
 def client():
@@ -110,3 +111,36 @@ def test_update_event_capacity_boundary_success(mocked_database, client):
     # Boundary value should be good (5 is not less than 5, pass the test!)
     response = client.patch("/api/v1/events/1", json={"capacity": 5})
     assert response.status_code == 200
+
+
+def test_list_events_success(mocked_database, client):
+    mock_get_db, mock_connection, mock_cursor = mocked_database
+
+    #test data 
+    mock_cursor.fetchall.return_value = [
+    {"event_id": 1, "title": "Pottery Workshop", "location": "Art Studio",
+    "start_datetime": datetime(2026, 11, 1, 14, 0, 0),
+    "capacity": 10, "registered_count": 2},
+    {"event_id": 2, "title": "Board Game Night", "location": "Wyckham House",
+    "start_datetime": datetime(2026, 11, 5, 18, 0, 0),
+    "capacity": 20, "registered_count": 0},
+    ]
+
+
+    response = client.get("/api/v1/events")
+    data = response.get_json()
+
+    assert response.status_code == 200
+    assert len(data) == 2
+    assert data[0]["start_datetime"] == "2026-11-01 14:00:00"
+    assert data[0]["spots_remaining"] == 8
+    assert data[1]["spots_remaining"] == 20
+
+def test_list_events_database_error(mocked_database, client):
+    mock_get_db, mock_connection, mock_cursor = mocked_database
+    mock_cursor.execute.side_effect = mysql.connector.Error("FAIL")
+
+    response = client.get("/api/v1/events")
+
+    assert response.status_code == 500
+    assert response.get_json() == {"error": "database error detected"}
