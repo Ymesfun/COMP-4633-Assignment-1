@@ -35,5 +35,5 @@ def test_get_event_success(client):
     assert data["event_id"] == 1
     assert data["title"] == "Pottery Workshop"
     assert data["capacity"] == 10
-    assert data["spots_remaining'] == 8
+    assert data["spots_remaining"] == 8
     
