@@ -117,7 +117,7 @@ def create_events_blueprint(get_db):
 
 
     def fetch_event(cursor, event_id, lock=False):
-        # lock=True adds FOR UPDATE: other requests wait until we commit, so the
+        # lock=True adds FOR UPDATE: other requests wait until commit, so
         # registration count we read stays accurate while we decide.
         cursor.execute(
             EVENT_SELECT + " WHERE e.event_id = %s" + (" FOR UPDATE" if lock else ""),
