@@ -47,3 +47,14 @@ def event_to_json(row):
         "registered_count": row["registered_count"],
         "spots_remaining": row["capacity"] - row["registered_count"],
     }
+
+
+def parse_start_datetime(value):
+    """Turn "YYYY-MM-DD HH:MM:SS" into a datetime, or raise a 400 ApiError."""
+    if not isinstance(value, str):
+        raise ApiError(400, "start_datetime must be a string in the format YYYY-MM-DD HH:MM:SS")
+    try:
+        return datetime.strptime(value, DATETIME_FORMAT)
+    except ValueError:
+        raise ApiError(400, "start_datetime must be a valid date in the format YYYY-MM-DD HH:MM:SS")
+
