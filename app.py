@@ -3,23 +3,17 @@ from flask import Flask, jsonify, request
 import mysql.connector
 from dotenv import load_dotenv
 from datetime import datetime
+from registration_api import registrations_bp
+from db import get_db
 
 #Fetches environment vars from .env file
 load_dotenv()
 
 app = Flask(__name__)
+app.register_blueprint(registrations_bp)
+
 DATETIME_FORMAT = "%Y-%m-%d %H:%M:%S"
 MAX_TEXT_LENGHT = 100
-
-def get_db():
-    """This function opens a connection to the mysql database using environment variables."""
-    return mysql.connector.connect(
-        host=os.getenv("MYSQL_HOST", "localhost"),
-        user=os.getenv("MYSQL_USER"),
-        password=os.getenv("MYSQL_PASSWORD"),
-        database=os.getenv("MYSQL_DATABASE", "campus_events"),
-        port=os.getenv("MYSQL_PORT", 3306)
-    )
 
 @app.get("/api")
 def health():
