@@ -156,3 +156,32 @@ def create_events_blueprint(get_db):
             event = event_to_json(fetch_event(cursor, event_id))
         return jsonify(event), 200
 
+
+ # ---------------------------------------------------------------- update an event
+    @bp.patch("/api/v1/events/<int:event_id>")
+    def update_event(event_id):
+        clean = validate_update(request.get_json(silent=True))
+        with transaction() as cursor:
+            current = fetch_event(cursor, event_id, lock=True)
+
+            if "capacity" in clean and clean["capacity"] < current["registered_count"]:
+                raise ApiError(
+                    409,
+                    f"Capacity cannot be lower than the current number of registrations "
+                    f"({current['registered_count']})",
+                )
+            # Only a NEW or CHANGED start time has to be in the future.
+            if "start_datetime" in clean and clean["start_datetime"] != current["start_datetime"]:
+                if clean["start_datetime"] <= utc_now():
+                    raise ApiError(400, "start_datetime must be in the future")
+
+            # Column names come from the validated whitelist above
+            # the values are pass as parameters
+            assignments = ", ".join(f"{column} = %s" for column in clean)
+            cursor.execute(
+                f"UPDATE events SET {assignments} WHERE event_id = %s",
+                (*clean.values(), event_id),
+            )
+            updated = event_to_json(fetch_event(cursor, event_id))
+        return jsonify(updated), 200
+
