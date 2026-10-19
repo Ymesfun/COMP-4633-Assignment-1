@@ -28,7 +28,7 @@ def test_get_event_success(client):
       "registered_count": 2
     }
 
-    response = client.get("/api/vi/events/1")
+    response = client.get("/api/v1/events/1")
     data = response.get_json()
 
     assert response.status_code == 200
