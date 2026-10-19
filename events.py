@@ -185,3 +185,20 @@ def create_events_blueprint(get_db):
             updated = event_to_json(fetch_event(cursor, event_id))
         return jsonify(updated), 200
 
+    # ---------------------------------------------------------------- delete an event
+    @bp.delete("/api/v1/events/<int:event_id>")
+    def delete_event(event_id):
+        with transaction() as cursor:
+            current = fetch_event(cursor, event_id, lock=True)
+            if current["registered_count"] > 0:
+                raise ApiError(409, "An event with registrations cannot be deleted")
+            try:
+                cursor.execute("DELETE FROM events WHERE event_id = %s", (event_id,))
+            except mysql.connector.IntegrityError as err:
+                # Safety net, the foreign key (ON DELETE RESTRICT) refused the delete.
+                if err.errno == ER_ROW_IS_REFERENCED:
+                    raise ApiError(409, "An event with registrations cannot be deleted")
+                raise
+        return "", 204
+
+    return bp
