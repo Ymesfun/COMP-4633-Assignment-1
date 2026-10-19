@@ -115,3 +115,25 @@ def create_events_blueprint(get_db):
             cursor.close()
             conn.close()
 
+
+    def fetch_event(cursor, event_id, lock=False):
+        # lock=True adds FOR UPDATE: other requests wait until we commit, so the
+        # registration count we read stays accurate while we decide.
+        cursor.execute(
+            EVENT_SELECT + " WHERE e.event_id = %s" + (" FOR UPDATE" if lock else ""),
+            (event_id,),
+        )
+        row = cursor.fetchone()
+        if row is None:
+            raise ApiError(404, "Event not found")
+        return row
+
+    @bp.errorhandler(ApiError)
+    def handle_api_error(err):
+        return jsonify({"error": err.message}), err.status
+
+    @bp.errorhandler(mysql.connector.Error)
+    def handle_db_error(err):
+        # Details go to the server log only, never to the client.
+        current_app.logger.error("Database error: %s", err)
+        return jsonify({"error": "Database error occurred"}), 500
