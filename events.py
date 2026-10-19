@@ -96,5 +96,22 @@ def validate_update(data):
     return clean
 
 
+def create_events_blueprint(get_db):
+    """get_db is passed in (instead of imported) so this file never has to import app.py"""
+    bp = Blueprint("events", __name__)
 
+    @contextmanager
+    def transaction():
+        """Open a connection and dict cursor. Commit if the block works, roll back if it fails"""
+        conn = get_db()
+        cursor = conn.cursor(dictionary=True)
+        try:
+            yield cursor
+            conn.commit()
+        except Exception:
+            conn.rollback()
+            raise
+        finally:
+            cursor.close()
+            conn.close()
 
