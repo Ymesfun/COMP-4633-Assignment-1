@@ -137,3 +137,22 @@ def create_events_blueprint(get_db):
         # Details go to the server log only, never to the client.
         current_app.logger.error("Database error: %s", err)
         return jsonify({"error": "Database error occurred"}), 500
+
+
+
+
+ # ---------------------------------------------------------------- list events
+    @bp.get("/api/v1/events")
+    def list_events():
+        with transaction() as cursor:
+            cursor.execute(EVENT_SELECT + " ORDER BY e.start_datetime, e.event_id")
+            rows = cursor.fetchall()
+        return jsonify({"count": len(rows), "events": [event_to_json(r) for r in rows]}), 200
+
+    # ---------------------------------------------------------------- get one event
+    @bp.get("/api/v1/events/<int:event_id>")
+    def get_event(event_id):
+        with transaction() as cursor:
+            event = event_to_json(fetch_event(cursor, event_id))
+        return jsonify(event), 200
+
