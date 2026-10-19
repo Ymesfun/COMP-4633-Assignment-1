@@ -37,3 +37,21 @@ def test_get_event_success(client):
     assert data["capacity"] == 10
     assert data["spots_remaining"] == 8
     
+
+def test_get_event_not_found(client):
+  """Test retrieving an event that does not exist."""
+
+  with patch("app.get_db") as mock_get_db:
+    mock_connection = MagicMock()
+    mock_cursor = MagicMock()
+
+    mock_get_db.return_value = mock_connection
+    mock_connection.cursor.return_value = mock_cursor
+
+    # Simulate an event that deos not exist
+    mock_cursor.fetchone.return_value = None
+
+    response = client.get("/api/v1/events/999")
+
+    assert response.status_code == 404
+    assert response.get_json() ["error"] == "Event not found"
