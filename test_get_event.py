@@ -1,4 +1,5 @@
 import pytest
+import mysql.connector
 from unittest.mock import patch, MagicMock
 from datetime import datetime
 from app import app
@@ -55,3 +56,24 @@ def test_get_event_not_found(client):
 
     assert response.status_code == 404
     assert response.get_json() ["error"] == "Event not found"
+
+
+def test_get_event_database_error(client):
+  """Test handling a database error when retrieving an event."""
+
+  with patch("app.get_db") as mock_get_db:
+    mock_connection = MagicMock()
+    mock_cursor = MagicMock()
+
+    mock_get_db.return_value = mock_connection
+    mock_connection.cursor.return_value = mock_cursor
+
+    # Simulate a database error
+    mock_cursor.execute.side_effect = mysql.connector.Error(
+      "Database connection failed"
+    )
+
+    response = client.get("/api/v1/events/1")
+
+    assert response.status_code == 500
+    assert response.get_json()["error'] == "database error detected"
