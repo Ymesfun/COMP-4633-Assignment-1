@@ -76,4 +76,4 @@ def test_get_event_database_error(client):
     response = client.get("/api/v1/events/1")
 
     assert response.status_code == 500
-    assert response.get_json()["error'] == "database error detected"
+    assert response.get_json()["error"] == "database error detected"
