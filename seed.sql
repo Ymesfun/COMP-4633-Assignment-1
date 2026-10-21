@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS participants (
 CREATE TABLE IF NOT EXISTS registrations (
   registration_id INT AUTO_INCREMENT PRIMARY KEY,
   event_id INT NOT NULL,
-  participant_id INT NOT NULL
+  participant_id INT NOT NULL,
   registration_datetime DATETIME DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (event_id) REFERENCES events(event_id) ON DELETE RESTRICT,
   FOREIGN KEY (participant_id) REFERENCES participants(participant_id),
