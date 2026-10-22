@@ -82,18 +82,19 @@ curl http://[your_vm_ip_address]:5000/api
 ```bash
 curl -X GET http://[your_vm_ip]:5000/api/v1/events -H "Content-Type: application/json"
 ```
+### List a specified event
+Called via /api/v1/events/<event_id>, with the example being:
+```bash
+curl -X GET http://[your_vm_ip]:5000/api/v1/events/1 -H "Content-Type: application/json"
+```
 ### Add a new event
 ```bash
-curl -X POST http://[your_vm_ip]:5000/api/v1/registrations/1 \
--H "Content-Type: application/json" \
--d '{"title": "Senior Social","location":"Lincoln park", "start_datetime":"2027-1-12 4:00:00", "capacity": 12}'
+curl -X POST http://[your_vm_ip]:5000/api/v1/events -H "Content-Type: application/json" -d '{"title": "Senior Social", "location":"Lincoln park", "start_datetime":"2027-01-12 16:00:00", "capacity": 12}'
 ```
 ### Modify an event
 This requires the specific eent path in the url, and for you to change the json structure with a valid update (e.g.,  time has to be in the future, can't modify an event to lower its capacity below the current rgistration), with a path of /api/v1/events/<int:event_id>
 ```bash
-curl -X POST http://[your_vm_ip]:5000/api/v1/registrations \
--H "Content-Type: application/json" \
--d '{"event_id": 1, "participant_id": 4}'
+curl -X PATCH http://[your_vm_ip]:5000/api/v1/events/1 -H "Content-Type: application/json" -d '{"capacity": 20}'
 ```
 ### Delete an event
 This requires there to be no existing registrations for the given event, and a valid event ID.
@@ -114,12 +115,12 @@ curl -X POST http://[your_vm_ip]:5000/api/v1/registrations \
 ```
 ### Cancel an existing registration
 ```bash
-curl -X DELETE http://[your_vm_ip]:5000/1"
+curl -X DELETE http://[your_vm_ip]:5000/api/v1/registrations/1   
 ```
 ### List an existing registration
 This takes your input as a query parameter.
 ```bash
-curl -X GET /api/v1/registrations/?event_id=1
+curl -X GET "http://[your_vm_ip]:5000/api/v1/registrations/?event_id=1"   
 ```
 ## Known Limitations
 ### Authentication:

@@ -187,7 +187,7 @@ def list_events():
             conn.close()
 
 
-#returns an event and nuimber of participants by its id
+#returns an event and number of participants by its id
 @app.get("/api/v1/events/<int:event_id>")
 def get_event(event_id):
     query = """SELECT e.event_id, e.title, e.location, e.start_datetime, e.capacity,

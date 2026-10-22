@@ -13,8 +13,8 @@ We also use unittest.mock to simulate database connections and operations. This 
 - Testing framework: pytest
 - Programming language: Python
 - Test execution: GitHub
-- Total tests: 42
-- Passed: 42
+- Total tests: 48
+- Passed: 48
 - Failed: 0
 
 The automated tests cover successful requests, invalid inputs, business-rule violations, and database error handling.
@@ -34,7 +34,7 @@ The following table identifies the automated test files associated with the API 
 | Delete an event | test_api.py / test_events_api.py | Tests implemented |
 | Register a participant | test_registrations.py | Tests implemented |
 | Cancel a registration | test_registrations.py | Tests implemented |
-| List registrations with participant names | To be verified | Not yet confirmed |
+| List registrations with participant names | test_registrations.py | Tests Implemented |
 
 ### Single Event Retrieval Tests
 
