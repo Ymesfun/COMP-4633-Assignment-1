@@ -187,6 +187,52 @@ def list_events():
             conn.close()
 
 
+#returns an event and nuimber of participants by its id
+@app.get("/api/v1/events/<int:event_id>")
+def get_event(event_id):
+    query = """SELECT e.event_id, e.title, e.location, e.start_datetime, e.capacity,
+                    (SELECT COUNT(*)
+                    FROM registrations r
+                    WHERE r.event_id = e.event_id) AS registered_count
+                FROM events e
+                WHERE e.event_id = %s """
+
+    conn = None
+    cursor = None
+    try:
+        conn = get_db()
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute(query, (event_id,))
+        row = cursor.fetchone()
+
+        if row is None:
+            return jsonify({"error": "Event not found"}), 404
+
+        return jsonify({
+            "event_id": row["event_id"],
+            "title": row["title"],
+            "location": row["location"],
+            "start_datetime": row["start_datetime"].strftime(DATETIME_FORMAT),
+            "capacity": row["capacity"],
+            "registered_count": row["registered_count"],
+            "spots_remaining": row["capacity"] - row["registered_count"],
+        }), 200
+    except mysql.connector.Error:
+        return jsonify({"error": "database error detected"}), 500
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
+    
+
+
+
+
+
+
+
+
 @app.delete("/api/v1/events/<int:event_id>")
 def delete_event(event_id):
     conn = None
