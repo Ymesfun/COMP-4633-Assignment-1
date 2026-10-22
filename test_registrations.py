@@ -1,8 +1,8 @@
 import pytest
+import mysql.connector
 from unittest.mock import patch, MagicMock
 from app import app  
 from datetime import datetime
-import mysql.connector
 
 @pytest.fixture
 def client():
@@ -146,6 +146,86 @@ def test_cancel_registration_database_error(mocked_database, client):
     mock_cursor.execute.side_effect = mysql.connector.Error("Connection lost")
     
     response = client.delete("/api/v1/registrations/1")
+    data = response.get_json()
+    
+    assert response.status_code == 500
+    assert data["error"] == "Database error occurred"
+
+def test_get_registrations_missing_query_param(client):
+    """Test 400 error when ?event_id= is missing."""
+    response = client.get("/api/v1/registrations/")
+    data = response.get_json()
+    
+    assert response.status_code == 400
+    assert data["error"] == "event_id query parameter is required"
+
+def test_get_registrations_invalid_query_param(client):
+    """Test 400 error when ?event_id= is not an integer."""
+    response = client.get("/api/v1/registrations/?event_id=abc")
+    data = response.get_json()
+    
+    assert response.status_code == 400
+    assert data["error"] == "event_id must be a valid integer"
+
+def test_get_registrations_event_not_found(mocked_database, client):
+    """Test 404 error when the event does not exist in the database."""
+    _, _, mock_cursor = mocked_database
+    
+    # Simulate the first query (SELECT event_id) returning None
+    mock_cursor.fetchone.return_value = None
+    
+    response = client.get("/api/v1/registrations/?event_id=999")
+    data = response.get_json()
+    
+    assert response.status_code == 404
+    assert data["error"] == "Event not found"
+
+def test_get_registrations_success(mocked_database, client):
+    """Test 200 success returning a list of registrations."""
+    _, _, mock_cursor = mocked_database
+    
+    # Simulate the first query (event exists)
+    mock_cursor.fetchone.return_value = {"event_id": 1}
+    
+    # Simulate the second query (returning joined registration data)
+    mock_cursor.fetchall.return_value = [
+        {"registration_id": 1, "participant_id": 101, "first_name": "John", "last_name": "Doe"},
+        {"registration_id": 2, "participant_id": 102, "first_name": "Jane", "last_name": "Smith"}
+    ]
+    
+    response = client.get("/api/v1/registrations/?event_id=1")
+    data = response.get_json()
+    
+    assert response.status_code == 200
+    assert len(data) == 2
+    assert data[0]["first_name"] == "John"
+    assert data[1]["participant_id"] == 102
+
+def test_get_registrations_empty_success(mocked_database, client):
+    """Test 200 success returning an empty list when event exists but has no registrations."""
+    _, _, mock_cursor = mocked_database
+    
+    # Simulate that an event with id 1 exists 
+    mock_cursor.fetchone.return_value = {"event_id": 1}
+    
+    # Simulate no registrations found
+    mock_cursor.fetchall.return_value = []
+    
+    response = client.get("/api/v1/registrations/?event_id=1")
+    data = response.get_json()
+    
+    assert response.status_code == 200
+    assert isinstance(data, list)
+    assert len(data) == 0
+
+def test_get_registrations_database_error(mocked_database, client):
+    """Test 500 error on database crash."""
+    _, _, mock_cursor = mocked_database
+    
+    # Simulate a database failure on execution
+    mock_cursor.execute.side_effect = mysql.connector.Error("Connection lost")
+    
+    response = client.get("/api/v1/registrations/?event_id=1")
     data = response.get_json()
     
     assert response.status_code == 500

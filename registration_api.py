@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify
-import mysql.connector
 from datetime import datetime
 from db import get_db
+import mysql.connector
 
 registrations_bp = Blueprint('registrations', __name__, url_prefix='/api/v1/registrations')
 
@@ -84,6 +84,48 @@ def cancel_registration(registration_id):
             return jsonify({"error": "Registration not found"}), 404
 
         return jsonify({"message": "Registration successfully cancelled"}), 200
+
+    except mysql.connector.Error:
+        return jsonify({"error": "Database error occurred"}), 500
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
+
+@registrations_bp.get("/")
+def get_registrations():
+    """Tries to get a registration associated with a specific event id. This assumes that it will be passed as a query string, e.g.
+    a request structured like GET /api/v1/registrations/?event_id=1"""
+    # request.args.get gets the query string parameter if its provided (assuming its 'event_id', structured as, ?event_id=1)
+    event_id = request.args.get('event_id')
+    
+    if not event_id: #if we dont use a query string/query param, raise a 400 error
+        return jsonify({"error": "event_id query parameter is required"}), 400
+        
+    if not event_id.isdigit(): #Check if the type is valid for our error case
+        return jsonify({"error": "event_id must be a valid integer"}), 400
+
+    conn = None
+    cursor = None
+    try:
+        conn = get_db()
+        cursor = conn.cursor(dictionary=True)
+
+        cursor.execute("SELECT event_id FROM events WHERE event_id = %s", (event_id,))
+        if not cursor.fetchone():
+            return jsonify({"error": "Event not found"}), 404 #if event doesnt exist in db, raise a 404 error
+
+        query = """
+            SELECT r.registration_id, r.participant_id, p.name
+            FROM registrations r
+            JOIN participants p ON r.participant_id = p.participant_id
+            WHERE r.event_id = %s
+        """
+        cursor.execute(query, (event_id,))
+        registrations = cursor.fetchall()
+
+        return jsonify(registrations), 200
 
     except mysql.connector.Error:
         return jsonify({"error": "Database error occurred"}), 500
