@@ -146,7 +146,7 @@ def update_event_details(event_id):
 def list_events():
     query = """ SELECT e.event_id, e.title, e.location, e.start_datetime, e.capacity, 
                     (SELECT COUNT(*) 
-                    FROM registractions r 
+                    FROM registrations r 
                     WHERE r.event_id = e.event_id) AS registered_count
                     FROM events e
                 ORDER BY e.start_datetime"""
