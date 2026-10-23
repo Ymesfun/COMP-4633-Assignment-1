@@ -16,6 +16,7 @@ Run the following command to install needed dependencies, then clone the reposit
 ```bash
 sudo apt update
 sudo apt install -y python3-pip python3-venv mysql-server git
+sudo apt install nano
 git clone <repo link>
 cd COMP-4633-Assignment-1
 ```
@@ -57,7 +58,7 @@ To set up your environment, first run the following bash commands:
 ``` bash
 python3 -m venv .venv
 source .venv/bin/activate
-python -m pip install -r requirements_2.txt
+python -m pip install -r requirements.txt
 python3 app.py
 ```
 ### Testing 
