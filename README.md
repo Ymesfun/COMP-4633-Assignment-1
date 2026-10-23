@@ -16,6 +16,7 @@ Run the following command to install needed dependencies, then clone the reposit
 ```bash
 sudo apt update
 sudo apt install -y python3-pip python3-venv mysql-server git
+sudo apt install tmux
 sudo apt install nano
 git clone <repo link>
 cd COMP-4633-Assignment-1
@@ -54,6 +55,11 @@ The database address is not in the source. Put it in `.env`, which is gitignored
 ### Environment setup & Execution
 
 Under the same assumption of you being in ~/COMP-4633-Assignment-1
+If you want persistence, enter the following before running the below commands:
+```bash 
+tmux
+```
+
 To set up your environment, first run the following bash commands:
 ``` bash
 python3 -m venv .venv
@@ -61,6 +67,11 @@ source .venv/bin/activate
 python -m pip install -r requirements.txt
 python3 app.py
 ```
+To return from tmux enter the following commands one after the other
+```terminal
+ctrl+b
+d
+``` 
 ### Testing 
 From the ~/COMP-4633-Assignment-1 Directory, run `pytest` in the terminal after the above setup (database not needed for the isolated pytest test cases!)
 
