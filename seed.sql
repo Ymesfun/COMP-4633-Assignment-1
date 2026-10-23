@@ -1,3 +1,4 @@
+USE campus_events;
 INSERT INTO participants (name, email) VALUES
   ('John Doe', 'jdoe101@mtroyal.ca'),
   ('Jane Doe', 'jdoe212@mtroyal.ca'),
