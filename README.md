@@ -23,6 +23,9 @@ cd COMP-4633-Assignment-1
 ```
 
 ### Database Configuration and Initialization
+A visualization of the tables in an entity relation diagram:
+![Database Diagram](ER_diagram.png)
+
 
 Assuming you are in directory: ~/COMP-4633-Assignment-1, do the following:
 
