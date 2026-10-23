@@ -25,16 +25,16 @@ These results represent mocked tests and do not independently verify integration
 
 The following table identifies the automated test files associated with the API requirements.
 
-| Assignment Requirements | Test File | Status |
-|---|---|---|
-| Create an event | test_api.py / test_events_api.py | Tests implemented |
-| List all events | test_api.py / test_events_api.py | Tests implemented |
-| Retrieve a single event | test_get_event.py | Tests implemented |
-| Update an event | test_api.py / test_events_api.py | Tests implemented |
-| Delete an event | test_api.py / test_events_api.py | Tests implemented |
-| Register a participant | test_registrations.py | Tests implemented |
-| Cancel a registration | test_registrations.py | Tests implemented |
-| List registrations with participant names | test_registrations.py | Tests Implemented |
+| Assignment Requirements | Test Names |
+|---|---|
+| Create an event | `test_create_event_success`, `test_create_event_invalid_capacity` |
+| List all events | `test_list_events_success`, `test_list_events_database_error` |
+| Retrieve a single event | `test_get_event_success`, `test_get_event_not_found`, `test_get_event_database_error` |
+| Update an event | `test_update_event_validation_errors`, `test_update_event_capacity_boundary_conflict`, `test_update_event_capacity_boundary_success` |
+| Delete an event | `test_delete_event_logic_errors`, `test_delete_event_success`, `test_delete_event_database_error` |
+| Register a participant | `test_register_missing_fields`, `test_register_event_not_found`, `test_register_event_started_boundary`, `test_register_event_at_capacity`, `test_register_success`, `test_register_integrity_errors` |
+| Cancel a registration | `test_cancel_registration_success`, `test_cancel_registration_not_found`, `test_cancel_registration_database_error` |
+| List registrations | `test_get_registrations_missing_query_param`, `test_get_registrations_invalid_query_param`, `test_get_registrations_event_not_found`, `test_get_registrations_success`, `test_get_registrations_empty_success`, `test_get_registrations_database_error` |
 
 ### Single Event Retrieval Tests
 
