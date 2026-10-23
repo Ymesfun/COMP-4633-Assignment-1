@@ -141,10 +141,6 @@ def update_event_details(event_id):
         if conn: 
             conn.close()
 
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000, debug=False)
-
-
 #returns a list of all events
 @app.get("/api/v1/events")
 def list_events():
@@ -263,3 +259,6 @@ def delete_event(event_id):
             cursor.close()
         if conn:
             conn.close()
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5000, debug=False)
