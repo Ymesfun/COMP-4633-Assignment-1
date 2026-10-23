@@ -9,7 +9,7 @@ The general API url on a successful deploy is http://[VM_IP_ADDR]:5000/api/v1
 ### Initial Configuration
 Start a fresh VM off of ubuntu-latest for something like google cloud.
 
-From your starting home directory (~) from a freshly booted vm, do the following:
+If you don't have sudoer rights, you should grant yourself admin/sudo rights in your vm instance.
 
 Run the following command to install needed dependencies, then clone the repository and move into it:
 

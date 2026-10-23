@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS events(
   location VARCHAR(100) NOT NULL,
   start_datetime DATETIME NOT NULL,
   capacity INT NOT NULL CHECK (capacity > 0)
-)\;
+);
 
 CREATE TABLE IF NOT EXISTS participants (
   participant_id INT AUTO_INCREMENT PRIMARY KEY,
