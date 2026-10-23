@@ -23,7 +23,7 @@ cd COMP-4633-Assignment-1
 ```
 
 ### Database Configuration and Initialization
-A visualization of the tables in an entity relation diagram:
+A visualization of the tables in our database in an entity relation diagram:\
 ![Database Diagram](ER_diagram.png)
 
 
